@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Panel - Planets Predictor</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; }
@@ -33,13 +34,13 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         <span>Dashboard</span>
                     </a>
-                    <a href="#" id="notifications-link" class="nav-link hover:bg-gray-700 p-3 rounded-lg flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
-                        <span>Broadcasts</span>
+                    <a href="#" id="community-link" class="nav-link hover:bg-gray-700 p-3 rounded-lg flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>Community</span>
                     </a>
-                    <a href="#" id="templates-link" class="nav-link hover:bg-gray-700 p-3 rounded-lg flex items-center gap-3">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
-                        <span>Templates</span>
+                    <a href="#" id="offers-link" class="nav-link hover:bg-gray-700 p-3 rounded-lg flex items-center gap-3">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        <span>Offers</span>
                     </a>
                 </nav>
             </div>
@@ -56,18 +57,19 @@
             </main>
         </div>
        
-        <!-- Overlay for mobile sidebar -->
         <div id="overlay" class="md:hidden fixed inset-0 bg-black/50 z-40 hidden"></div>
 
-        <!-- User Detail Modal -->
         <div id="modal-container" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-[60] hidden">
             <div id="modal-content" class="w-full max-w-3xl bg-gray-800 border border-gray-700 rounded-2xl flex flex-col" style="height: 90vh;">
-                 <!-- Modal content goes here -->
             </div>
         </div>
     </div>
 
     <script>
+        const supabaseUrl = 'https://qnfqdaoxgpsveswsqetu.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuZnFkYW94Z3BzdmVzd3NxZXR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2NjIwMTQsImV4cCI6MjA3NTIzODAxNH0.I19nEWI6BgwT5vIIacZvrT53N1yZHO5JlGn-xVFVk54';
+        const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
         const adminApp = {
             elements: {
                 mainContent: document.getElementById('main-content'),
@@ -78,23 +80,28 @@
                 menuButton: document.getElementById('menu-button'),
                 modal: { container: document.getElementById('modal-container'), content: document.getElementById('modal-content') }
             },
-            db: {},
             
-            init() {
-                this.loadDB();
+            async init() {
                 this.attachEventListeners();
-                this.render('dashboard');
+                await this.render('dashboard');
             },
-
-            loadDB() { this.db = JSON.parse(localStorage.getItem('planetsPredictorAdminDB')) || {}; },
-            saveDB() { localStorage.setItem('planetsPredictorAdminDB', JSON.stringify(this.db)); },
+            
+            async loadDB(table = 'users') {
+                 const { data, error } = await supabaseClient.from(table).select('*');
+                if (error) {
+                    console.error(`Error fetching ${table}:`, error);
+                    alert(`Could not connect to the ${table} table. Check console.`);
+                    return [];
+                }
+                return data;
+            },
 
             attachEventListeners() {
                 this.elements.navLinks.forEach(link => {
-                    link.addEventListener('click', (e) => {
+                    link.addEventListener('click', async (e) => {
                         e.preventDefault();
                         const page = e.currentTarget.id.replace('-link', '');
-                        this.render(page);
+                        await this.render(page);
                         this.closeSidebar();
                     });
                 });
@@ -103,47 +110,38 @@
                 this.elements.overlay.addEventListener('click', () => this.closeSidebar());
                 this.elements.modal.container.addEventListener('click', (e) => { if (e.target === this.elements.modal.container) this.hideModal(); });
             },
+            toggleSidebar() { this.elements.sidebar.classList.toggle('-translate-x-full'); this.elements.overlay.classList.toggle('hidden'); },
+            closeSidebar() { this.elements.sidebar.classList.add('-translate-x-full'); this.elements.overlay.classList.add('hidden'); },
+            setActiveLink(page) { this.elements.navLinks.forEach(link => { link.classList.toggle('bg-gray-700', link.id.startsWith(page)); link.classList.toggle('text-white', link.id.startsWith(page)); }); },
 
-            toggleSidebar() {
-                this.elements.sidebar.classList.toggle('-translate-x-full');
-                this.elements.overlay.classList.toggle('hidden');
-            },
-            closeSidebar() {
-                this.elements.sidebar.classList.add('-translate-x-full');
-                this.elements.overlay.classList.add('hidden');
-            },
-
-            setActiveLink(page) {
-                this.elements.navLinks.forEach(link => {
-                    link.classList.toggle('bg-gray-700', link.id.startsWith(page));
-                    link.classList.toggle('text-white', link.id.startsWith(page));
-                });
-            },
-
-            render(page, searchTerm = '') {
-                this.loadDB();
+            async render(page, searchTerm = '') {
                 this.setActiveLink(page);
                 this.elements.lastRefresh.textContent = new Date().toLocaleTimeString();
                 
                 const renderer = `render_${page}`;
                 if (typeof this[renderer] === 'function') {
-                    this.elements.mainContent.innerHTML = this[renderer](searchTerm);
+                    this.elements.mainContent.innerHTML = await this[renderer](searchTerm);
                 }
                 
+                // Attach specific listeners after render
                 if(page === 'dashboard') {
                     document.getElementById('search-input').addEventListener('input', (e) => this.render('dashboard', e.target.value));
-                } else if(page === 'notifications') {
-                    document.getElementById('broadcast-form').addEventListener('submit', (e) => {
+                } else if (page === 'community') {
+                     document.getElementById('add-member-form').addEventListener('submit', (e) => {
                         e.preventDefault();
-                        const message = document.getElementById('broadcast-message').value;
-                        if (message.trim()) this.sendBroadcast(message);
+                        this.addCommunityMember();
+                    });
+                } else if (page === 'offers') {
+                     document.getElementById('add-offer-form').addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        this.addOffer();
                     });
                 }
             },
 
-            render_dashboard(searchTerm) {
-                const users = Object.values(this.db);
-                const filteredUsers = users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase()) || user.phone.includes(searchTerm));
+            async render_dashboard(searchTerm) {
+                const users = await this.loadDB('users');
+                const filteredUsers = users.filter(user => (user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (user.phone || '').includes(searchTerm));
                 const stats = { total: users.length, active: users.filter(u => u.status === 'Active Chat').length, resolved: users.filter(u => u.status === 'Resolved').length };
                 
                 return `
@@ -173,7 +171,7 @@
             
             renderUserRow(user) {
                 user.status = user.status || 'New User';
-                if(user.chatHistory && user.chatHistory.length > 0 && user.status === 'New User') user.status = 'Active Chat';
+                if(user.chat_history && user.chat_history.length > 0 && user.status === 'New User') user.status = 'Active Chat';
                 const statusColors = { 'New User': 'bg-blue-500/20 text-blue-300', 'Active Chat': 'bg-yellow-500/20 text-yellow-300', 'Resolved': 'bg-green-500/20 text-green-300' };
                 
                 return `<tr class="border-b border-gray-700 hover:bg-gray-700/50">
@@ -182,16 +180,72 @@
                                 <div class="text-xs text-gray-400">${user.phone}</div>
                             </td>
                             <td class="p-3 hidden sm:table-cell"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColors[user.status] || ''}">${user.status}</span></td>
-                            <td class="p-3"><button onclick="adminApp.viewUser('${user.userId}')" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-1 px-3 rounded">Manage</button></td>
+                            <td class="p-3"><button onclick="adminApp.viewUser('${user.user_id}')" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-1 px-3 rounded">Manage</button></td>
                         </tr>`;
             },
+            
+            async render_community() {
+                const members = await this.loadDB('community_members');
+                return `
+                    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Community Management</h1>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-gray-800 p-6 rounded-lg">
+                            <div class="flex justify-between items-center mb-4">
+                                <h2 class="text-xl font-semibold">Community Members (${members.length})</h2>
+                                <button onclick="adminApp.createCommunity(true)" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg whitespace-nowrap">Notify Community</button>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left">
+                                    <thead><tr><th class="p-3">Name</th><th class="p-3">Phone</th></tr></thead>
+                                    <tbody>
+                                        ${members.map(m => `<tr><td class="p-2">${m.name}</td><td class="p-2">${m.phone}</td></tr>`).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-lg">
+                            <h2 class="text-xl font-semibold mb-4">Add New Member</h2>
+                            <form id="add-member-form" class="space-y-4">
+                                <input type="text" id="new-member-name" placeholder="Name" required class="w-full p-2 bg-gray-700 rounded text-white">
+                                <input type="tel" id="new-member-phone" placeholder="Phone Number" required class="w-full p-2 bg-gray-700 rounded text-white">
+                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Add to Community</button>
+                            </form>
+                        </div>
+                    </div>`;
+            },
 
-            render_notifications() { /* ... same as before ... */ return `...`; },
-            render_templates() { /* ... same as before ... */ return `...`; },
+            async render_offers() {
+                const offers = await this.loadDB('offers');
+                return `
+                    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Offers & Promotions</h1>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-gray-800 p-6 rounded-lg">
+                            <h2 class="text-xl font-semibold mb-4">Current Offers (${offers.length})</h2>
+                            <div class="space-y-4">
+                                ${offers.map(o => `
+                                    <div class="bg-gray-700/50 p-4 rounded-lg">
+                                        <h3 class="font-bold text-yellow-300">${o.title}</h3>
+                                        <p class="text-sm text-gray-300">${o.description}</p>
+                                        <button onclick="adminApp.createCommunity(true, 'New Offer: ${o.title} - ${o.description}')" class="mt-2 bg-green-600 text-xs py-1 px-3 rounded">Notify Community</button>
+                                    </div>`).join('')}
+                            </div>
+                        </div>
+                        <div class="bg-gray-800 p-6 rounded-lg">
+                            <h2 class="text-xl font-semibold mb-4">Create New Offer</h2>
+                            <form id="add-offer-form" class="space-y-4">
+                                <input type="text" id="new-offer-title" placeholder="Offer Title" required class="w-full p-2 bg-gray-700 rounded text-white">
+                                <textarea id="new-offer-desc" placeholder="Description" required class="w-full p-2 bg-gray-700 rounded h-24 text-white"></textarea>
+                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Create & Save Offer</button>
+                            </form>
+                        </div>
+                    </div>`;
+            },
 
-            viewUser(userId) {
-                const user = this.db[userId];
+            async viewUser(userId) {
+                const users = await this.loadDB('users');
+                const user = users.find(u => u.user_id === userId);
                 if (!user) return;
+                const chatHistory = user.chat_history || [];
 
                 this.elements.modal.content.innerHTML = `
                     <header class="p-4 md:p-6 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
@@ -200,15 +254,15 @@
                     </header>
                     <div id="user-edit-form" class="flex-grow p-4 md:p-6 overflow-y-auto no-scrollbar">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
-                            <div><label class="block text-xs text-gray-400 mb-1">Name</label><input type="text" name="name" value="${user.name}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded"></div>
-                            <div><label class="block text-xs text-gray-400 mb-1">Phone</label><input type="text" name="phone" value="${user.phone}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded"></div>
-                            <div><label class="block text-xs text-gray-400 mb-1">DOB</label><input type="date" name="dob" value="${user.dob}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded"></div>
-                            <div><label class="block text-xs text-gray-400 mb-1">TOB</label><input type="time" name="tob" value="${user.tob}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded"></div>
-                            <div class="md:col-span-2"><label class="block text-xs text-gray-400 mb-1">POB</label><input type="text" name="pob" value="${user.pob}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded"></div>
+                            <div><label class="block text-xs text-gray-400 mb-1">Name</label><input type="text" name="name" value="${user.name || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div>
+                            <div><label class="block text-xs text-gray-400 mb-1">Phone</label><input type="text" name="phone" value="${user.phone || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div>
+                            <div><label class="block text-xs text-gray-400 mb-1">DOB</label><input type="date" name="dob" value="${user.dob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white" style="color-scheme: dark;"></div>
+                            <div><label class="block text-xs text-gray-400 mb-1">TOB</label><input type="time" name="tob" value="${user.tob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white" style="color-scheme: dark;"></div>
+                            <div class="md:col-span-2"><label class="block text-xs text-gray-400 mb-1">POB</label><input type="text" name="pob" value="${user.pob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div>
                         </div>
                         <h3 class="text-lg font-semibold mb-2 border-t border-gray-700 pt-4">Conversation</h3>
                         <div class="h-48 overflow-y-auto no-scrollbar bg-gray-900/50 p-4 rounded-lg space-y-3">
-                             ${user.chatHistory.map(msg => `<div class="flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}"><div class="max-w-md p-2 rounded-lg text-xs ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-600'}">${msg.text}</div></div>`).join('') || '<p class="text-gray-500">No chat history yet.</p>'}
+                             ${chatHistory.map(msg => `<div class="flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}"><div class="max-w-md p-2 rounded-lg text-xs ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-600'}">${msg.text}</div></div>`).join('') || '<p class="text-gray-500">No chat history yet.</p>'}
                         </div>
                     </div>
                     <footer class="p-4 md:p-6 border-t border-gray-700 flex-shrink-0 bg-gray-800">
@@ -216,117 +270,104 @@
                             <textarea id="direct-message-text" rows="2" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-200" placeholder="Reply as Astrologer..."></textarea>
                             <div class="flex flex-col sm:flex-row gap-2">
                                 <button type="submit" class="w-full sm:w-auto flex-grow bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 rounded-lg">Send Reply</button>
-                                <button type="button" onclick="adminApp.saveUserDetails('${user.userId}')" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-2 px-3 rounded-lg">Save Changes</button>
-                                <button type="button" onclick="adminApp.updateUserStatus('${user.userId}', 'Resolved')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg">Mark Resolved</button>
+                                <button type="button" onclick="adminApp.saveUserDetails('${user.user_id}')" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-2 px-3 rounded-lg">Save Changes</button>
+                                <button type="button" onclick="adminApp.updateUserStatus('${user.user_id}', 'Resolved')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg">Mark Resolved</button>
                             </div>
                         </form>
                     </footer>
                 `;
                 this.elements.modal.container.classList.remove('hidden');
 
-                document.getElementById('direct-message-form').addEventListener('submit', e => {
+                document.getElementById('direct-message-form').addEventListener('submit', async (e) => {
                     e.preventDefault();
                     const message = document.getElementById('direct-message-text').value;
                     if (message.trim()) {
-                        this.replyAsAstrologer(user.userId, message);
+                        await this.replyAsAstrologer(user.user_id, message);
                         document.getElementById('direct-message-text').value = '';
                     }
                 });
             },
             
-            saveUserDetails(userId) {
+            async saveUserDetails(userId) {
                 const form = document.getElementById('user-edit-form');
-                if (!form || !this.db[userId]) return;
+                const users = await this.loadDB('users');
+                const user = users.find(u => u.user_id === userId);
+                if (!form || !user) return;
 
-                this.db[userId].name = form.querySelector('[name="name"]').value;
-                this.db[userId].phone = form.querySelector('[name="phone"]').value;
-                this.db[userId].dob = form.querySelector('[name="dob"]').value;
-                this.db[userId].tob = form.querySelector('[name="tob"]').value;
-                this.db[userId].pob = form.querySelector('[name="pob"]').value;
+                const updatedData = {
+                    name: form.querySelector('[name="name"]').value,
+                    phone: form.querySelector('[name="phone"]').value,
+                    dob: form.querySelector('[name="dob"]').value,
+                    tob: form.querySelector('[name="tob"]').value,
+                    pob: form.querySelector('[name="pob"]').value,
+                };
                 
-                this.saveDB();
-                alert('User details saved successfully!');
-                this.hideModal();
-                this.render('dashboard');
+                const { error } = await supabaseClient.from('users').update(updatedData).eq('user_id', userId);
+                
+                if (error) {
+                    console.error('Error updating user:', error);
+                    alert('Failed to save details.');
+                } else {
+                    alert('User details saved successfully!');
+                    this.hideModal();
+                    await this.render('dashboard');
+                }
             },
             
-            updateUserStatus(userId, status) { /* ... same as before ... */ },
-            replyAsAstrologer(userId, message) { /* ... same as before ... */ },
-            hideModal() { this.elements.modal.container.classList.add('hidden'); this.elements.modal.content.innerHTML = ''; },
-            sendBroadcast(message) { /* ... same as before ... */ },
-            createCommunity() { /* ... same as before ... */ },
-            simulateWhatsappNotification(phone, message) { /* ... same as before ... */ },
-        };
+            async updateUserStatus(userId, status) {
+                const { error } = await supabaseClient.from('users').update({ status: status }).eq('user_id', userId);
+                if (error) { alert('Failed to update status.'); console.error(error); } 
+                else { alert(`User marked as ${status}.`); this.hideModal(); await this.render('dashboard'); }
+            },
 
-        // Simplified render functions for brevity
-        adminApp.render_notifications = function() {
-            const users = Object.values(this.db);
-            return `
-                <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Broadcast Notifications</h1>
-                <div class="bg-gray-800 rounded-lg shadow-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4">Broadcast Message</h2>
-                    <p class="text-sm text-gray-400 mb-4">Send a message to all ${users.length} registered users.</p>
-                    <form id="broadcast-form">
-                        <textarea id="broadcast-message" rows="4" class="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg mb-4 text-gray-200" placeholder="Type your message here..."></textarea>
-                        <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-4 rounded-lg">Send Broadcast</button>
-                    </form>
-                </div>`;
+            async replyAsAstrologer(userId, message) {
+                const users = await this.loadDB('users');
+                const user = users.find(u => u.user_id === userId);
+                if (!user) return;
+
+                const newChatMessage = { sender: 'astrologer', text: message, timestamp: Date.now() };
+                const updatedChatHistory = [...(user.chat_history || []), newChatMessage];
+
+                const { error } = await supabaseClient.from('users').update({ chat_history: updatedChatHistory }).eq('user_id', userId);
+                if (error) { alert('Failed to send reply.'); console.error('Error sending reply:', error); } 
+                else { alert(`Reply sent to ${user.name}!`); this.viewUser(userId); }
+            },
+
+            async addCommunityMember() {
+                const name = document.getElementById('new-member-name').value;
+                const phone = document.getElementById('new-member-phone').value;
+                if(!name || !phone) return;
+
+                const { error } = await supabaseClient.from('community_members').insert({ name, phone });
+                if (error) { alert(`Error adding member: ${error.message}`); } 
+                else { alert('Member added successfully!'); await this.render('community'); }
+            },
+
+            async addOffer() {
+                const title = document.getElementById('new-offer-title').value;
+                const description = document.getElementById('new-offer-desc').value;
+                if(!title || !description) return;
+
+                const { error } = await supabaseClient.from('offers').insert({ title, description });
+                if (error) { alert(`Error adding offer: ${error.message}`); } 
+                else { alert('Offer created successfully!'); await this.render('offers'); }
+            },
+
+            hideModal() { this.elements.modal.container.classList.add('hidden'); this.elements.modal.content.innerHTML = ''; },
+            
+            async createCommunity(isCommunity = false, customMessage = "Hello from the Planets Predictor community!") {
+                const members = isCommunity ? await this.loadDB('community_members') : await this.loadDB('users');
+                if (members.length === 0) { alert('No users to create a community with.'); return; }
+                const firstPhone = members[0].phone;
+                window.open(`https://wa.me/${firstPhone}?text=${encodeURIComponent(customMessage)}`, '_blank');
+                alert('WhatsApp is opening to notify the community. You may need to manually forward the message to other members.');
+            },
+
+            simulateWhatsappNotification(phone, message) { console.log(`%c[ADMIN WHATSAPP SIMULATION]`, 'color: #FFA500; font-weight: bold;', `\nTo: ${phone}\nMessage: ${message}`); },
         };
-        adminApp.render_templates = function() {
-            const templates = [
-                { title: "Daily Horoscope", message: "✨ Your daily horoscope is now available in the Planets Predictor app! Tap to see what the stars have in store for you today." },
-                { title: "Full Moon Alert", message: "🌕 Tonight is the Full Moon! It's a powerful time for reflection and setting new intentions. Open the app for a special Full Moon reading." },
-                { title: "Special Offer", message: "🔮 Special Offer! Get a 10-minute bonus on your next live consultation. Book now in the Planets Predictor app." }
-            ];
-            return `
-                <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Message Templates</h1>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                ${templates.map(t => `
-                    <div class="bg-gray-800 rounded-lg shadow-lg p-6">
-                        <h2 class="text-xl font-semibold mb-2">${t.title}</h2>
-                        <p class="text-sm text-gray-400 mb-4 h-16">${t.message}</p>
-                        <button onclick="adminApp.sendBroadcast('${t.message.replace(/'/g, "\\'")}')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Send to All Users</button>
-                    </div>
-                `).join('')}
-                </div>`;
-        };
-        adminApp.updateUserStatus = function(userId, status) {
-            if(this.db[userId]) {
-                this.db[userId].status = status;
-                this.saveDB();
-                this.hideModal();
-                this.render('dashboard');
-                alert(`User ${this.db[userId].name} marked as ${status}.`);
-            }
-        };
-        adminApp.replyAsAstrologer = function(userId, message) {
-            if(this.db[userId]) {
-                const mainAppDb = JSON.parse(localStorage.getItem('planetsPredictorState')) || {};
-                if(mainAppDb.userId === userId) {
-                        mainAppDb.chatHistory.push({ sender: 'astrologer', text: message, timestamp: Date.now() });
-                        localStorage.setItem('planetsPredictorState', JSON.stringify(mainAppDb));
-                        alert(`Reply sent to ${this.db[userId].name}! They will see it in the app.`);
-                        this.viewUser(userId);
-                } else {
-                        this.db[userId].chatHistory.push({ sender: 'astrologer', text: message, timestamp: Date.now() });
-                        this.saveDB();
-                        alert(`Reply sent to ${this.db[userId].name}!`);
-                        this.viewUser(userId);
-                }
-            }
-        };
-        adminApp.sendBroadcast = function(message) { if (!confirm(`Are you sure you want to send this message to all ${Object.keys(this.db).length} users?`)) return; Object.values(this.db).forEach(user => this.simulateWhatsappNotification(user.phone, message)); alert('Broadcast sent successfully!'); if(document.getElementById('broadcast-message')) document.getElementById('broadcast-message').value = ''; };
-        adminApp.createCommunity = function() { const numbers = Object.values(this.db).map(user => user.phone).join(','); if (!numbers) { alert('No users to create a community with.'); return; } const message = `Welcome to the Planets Predictor community! Here are the members:\n${numbers}`; const firstPhone = Object.values(this.db)[0].phone; window.open(`https://wa.me/${firstPhone}?text=${encodeURIComponent(message)}`, '_blank'); alert('WhatsApp is opening. You will need to manually add members from the pre-filled list.'); };
-        adminApp.simulateWhatsappNotification = function(phone, message) { console.log(`%c[ADMIN WHATSAPP SIMULATION]`, 'color: #FFA500; font-weight: bold;', `\nTo: ${phone}\nMessage: ${message}`); };
         
         window.addEventListener('DOMContentLoaded', () => adminApp.init());
-        
-        setInterval(() => {
-            if (document.getElementById('dashboard-link').classList.contains('bg-gray-700')) {
-                const searchVal = document.getElementById('search-input')?.value || '';
-                adminApp.render('dashboard', searchVal);
-            }
-        }, 5000);
+        setInterval(() => { if (document.getElementById('dashboard-link')?.classList.contains('bg-gray-700')) { const searchVal = document.getElementById('search-input')?.value || ''; adminApp.render('dashboard', searchVal); } }, 10000);
     </script>
 </body>
 </html>
