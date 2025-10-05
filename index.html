@@ -45,6 +45,10 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                         <span>Dashboard</span>
                     </a>
+                     <a href="#" id="predictions-link" class="nav-link hover:bg-gray-700 p-3 rounded-lg flex items-center gap-3">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2Z"></path><path d="m16.2 7.8-1.5-1.5-3.3 3.3-3.3-3.3-1.5 1.5 3.3 3.3-3.3 3.3 1.5 1.5 3.3-3.3 3.3 3.3 1.5-1.5-3.3-3.3Z"></path></svg>
+                        <span>Predictions</span>
+                    </a>
                     <a href="#" id="community-link" class="nav-link hover:bg-gray-700 p-3 rounded-lg flex items-center gap-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         <span>Community</span>
@@ -146,25 +150,15 @@
                 if(page === 'dashboard') {
                     document.getElementById('search-input').addEventListener('input', (e) => this.render('dashboard', e.target.value));
                 } else if (page === 'community') {
-                     document.getElementById('add-member-form').addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        this.addCommunityMember();
-                    });
+                     document.getElementById('add-member-form').addEventListener('submit', (e) => { e.preventDefault(); this.addCommunityMember(); });
                 } else if (page === 'offers') {
-                     document.getElementById('add-offer-form').addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        this.addOffer();
-                    });
+                     document.getElementById('add-offer-form').addEventListener('submit', (e) => { e.preventDefault(); this.addOffer(); });
                 } else if (page === 'content') {
-                    document.getElementById('content-form').addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        this.updateSiteContent();
-                    });
+                    document.getElementById('content-form').addEventListener('submit', (e) => { e.preventDefault(); this.updateSiteContent(); });
                 } else if (page === 'appearance') {
-                    document.getElementById('appearance-form').addEventListener('submit', (e) => {
-                        e.preventDefault();
-                        this.updateAppearance();
-                    });
+                    document.getElementById('appearance-form').addEventListener('submit', (e) => { e.preventDefault(); this.updateAppearance(); });
+                } else if (page === 'predictions') {
+                    document.getElementById('add-prediction-form').addEventListener('submit', (e) => { e.preventDefault(); this.addPrediction(); });
                 }
             },
 
@@ -172,351 +166,109 @@
                 const users = await this.loadDB('users');
                 const filteredUsers = users.filter(user => (user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) || (user.phone || '').includes(searchTerm));
                 const stats = { total: users.length, active: users.filter(u => u.status === 'Active Chat').length, resolved: users.filter(u => u.status === 'Resolved').length };
-                
-                return `
-                    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">User Dashboard</h1>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6">
-                        <div class="bg-gray-800/80 p-4 rounded-lg"><h3 class="text-gray-400 text-sm">Total Users</h3><p class="text-2xl md:text-3xl font-bold">${stats.total}</p></div>
-                        <div class="bg-gray-800/80 p-4 rounded-lg"><h3 class="text-gray-400 text-sm">Active Chats</h3><p class="text-2xl md:text-3xl font-bold text-yellow-400">${stats.active}</p></div>
-                        <div class="bg-gray-800/80 p-4 rounded-lg"><h3 class="text-gray-400 text-sm">Resolved</h3><p class="text-2xl md:text-3xl font-bold text-green-400">${stats.resolved}</p></div>
-                    </div>
-                    <div class="bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-lg p-4 md:p-6">
-                        <div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4">
-                            <h2 class="text-xl font-semibold">Registered Users (${filteredUsers.length})</h2>
-                            <div class="flex gap-4">
-                                <input type="text" id="search-input" value="${searchTerm}" placeholder="Search..." class="w-full md:w-64 p-2 bg-gray-700 border border-gray-600 rounded-lg">
-                            </div>
-                        </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
-                                <thead><tr class="border-b border-gray-700"><th class="p-3">User</th><th class="p-3 hidden sm:table-cell">Status</th><th class="p-3">Actions</th></tr></thead>
-                                <tbody>
-                                    ${filteredUsers.map(user => this.renderUserRow(user)).join('') || `<tr><td colspan="3" class="text-center p-4 text-gray-500">No users found.</td></tr>`}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>`;
+                return `<h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">User Dashboard</h1><div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-6"><div class="bg-gray-800/80 p-4 rounded-lg"><h3 class="text-gray-400 text-sm">Total Users</h3><p class="text-2xl md:text-3xl font-bold">${stats.total}</p></div><div class="bg-gray-800/80 p-4 rounded-lg"><h3 class="text-gray-400 text-sm">Active Chats</h3><p class="text-2xl md:text-3xl font-bold text-yellow-400">${stats.active}</p></div><div class="bg-gray-800/80 p-4 rounded-lg"><h3 class="text-gray-400 text-sm">Resolved</h3><p class="text-2xl md:text-3xl font-bold text-green-400">${stats.resolved}</p></div></div><div class="bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-lg p-4 md:p-6"><div class="flex flex-col md:flex-row justify-between md:items-center mb-4 gap-4"><h2 class="text-xl font-semibold">Registered Users (${filteredUsers.length})</h2><div class="flex gap-4"><input type="text" id="search-input" value="${searchTerm}" placeholder="Search..." class="w-full md:w-64 p-2 bg-gray-700 border border-gray-600 rounded-lg"></div></div><div class="overflow-x-auto"><table class="w-full text-left"><thead><tr class="border-b border-gray-700"><th class="p-3">User</th><th class="p-3 hidden sm:table-cell">Status</th><th class="p-3">Actions</th></tr></thead><tbody>${filteredUsers.map(user => this.renderUserRow(user)).join('') || `<tr><td colspan="3" class="text-center p-4 text-gray-500">No users found.</td></tr>`}</tbody></table></div></div>`;
             },
             
             renderUserRow(user) {
                 user.status = user.status || 'New User';
                 if(user.chat_history && user.chat_history.length > 0 && user.status === 'New User') user.status = 'Active Chat';
                 const statusColors = { 'New User': 'bg-blue-500/20 text-blue-300', 'Active Chat': 'bg-yellow-500/20 text-yellow-300', 'Resolved': 'bg-green-500/20 text-green-300' };
-                
-                return `<tr class="border-b border-gray-700 hover:bg-gray-700/50">
-                            <td class="p-3">
-                                <div class="font-semibold">${user.name}</div>
-                                <div class="text-xs text-gray-400">${user.phone}</div>
-                            </td>
-                            <td class="p-3 hidden sm:table-cell"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColors[user.status] || ''}">${user.status}</span></td>
-                            <td class="p-3"><button onclick="adminApp.viewUser('${user.user_id}')" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-1 px-3 rounded">Manage</button></td>
-                        </tr>`;
+                return `<tr class="border-b border-gray-700 hover:bg-gray-700/50"><td class="p-3"><div class="font-semibold">${user.name}</div><div class="text-xs text-gray-400">${user.phone}</div></td><td class="p-3 hidden sm:table-cell"><span class="px-2 py-1 text-xs font-semibold rounded-full ${statusColors[user.status] || ''}">${user.status}</span></td><td class="p-3"><button onclick="adminApp.viewUser('${user.user_id}')" class="bg-blue-600 hover:bg-blue-500 text-white text-sm font-bold py-1 px-3 rounded">Manage</button></td></tr>`;
             },
             
-            async render_community() {
-                const members = await this.loadDB('community_members');
+            async render_predictions() {
+                const predictions = await this.loadDB('predictions');
                 return `
-                    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Community Management</h1>
+                    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Cosmic Predictions</h1>
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         <div class="lg:col-span-2 bg-gray-800/80 p-6 rounded-lg">
-                            <div class="flex justify-between items-center mb-4">
-                                <h2 class="text-xl font-semibold">Community Members (${members.length})</h2>
-                                <button onclick="adminApp.createCommunity(true)" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg whitespace-nowrap">Notify Community</button>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left">
-                                    <thead><tr><th class="p-3">Name</th><th class="p-3">Phone</th><th class="p-3">Actions</th></tr></thead>
-                                    <tbody>
-                                        ${members.map(m => `<tr><td class="p-2">${m.name}</td><td class="p-2">${m.phone}</td><td><button class="text-red-400 text-xs" onclick="adminApp.deleteCommunityMember(${m.id})">Remove</button></td></tr>`).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        <div class="bg-gray-800/80 p-6 rounded-lg">
-                            <h2 class="text-xl font-semibold mb-4">Add New Member</h2>
-                            <form id="add-member-form" class="space-y-4">
-                                <input type="text" id="new-member-name" placeholder="Name" required class="w-full p-2 bg-gray-700 rounded text-white">
-                                <input type="tel" id="new-member-phone" placeholder="Phone Number" required class="w-full p-2 bg-gray-700 rounded text-white">
-                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Add to Community</button>
-                            </form>
-                        </div>
-                    </div>`;
-            },
-
-            async render_offers() {
-                const offers = await this.loadDB('offers');
-                return `
-                    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Offers & Promotions</h1>
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                        <div class="lg:col-span-2 bg-gray-800/80 p-6 rounded-lg">
-                            <h2 class="text-xl font-semibold mb-4">Current Offers (${offers.length})</h2>
+                            <h2 class="text-xl font-semibold mb-4">Upcoming Events (${predictions.length})</h2>
                             <div class="space-y-4">
-                                ${offers.map(o => `
+                                ${predictions.sort((a,b) => new Date(a.event_date) - new Date(b.event_date)).map(p => `
                                     <div class="bg-gray-700/50 p-4 rounded-lg">
                                         <div class="flex justify-between items-start">
                                             <div>
-                                                <h3 class="font-bold text-yellow-300">${o.title}</h3>
-                                                <p class="text-sm text-gray-300">${o.description}</p>
+                                                <p class="text-sm font-bold text-yellow-300">${p.event_date}</p>
+                                                <h3 class="font-semibold">${p.event_title}</h3>
+                                                <p class="text-xs text-gray-300 mt-1">${p.description}</p>
                                             </div>
-                                            <div>
-                                                <button onclick="adminApp.deleteOffer(${o.id})" class="text-red-400 text-xs">Delete</button>
-                                            </div>
+                                            <button onclick="adminApp.deletePrediction(${p.id})" class="text-red-400 text-xs">Delete</button>
                                         </div>
-                                        <button onclick="adminApp.createCommunity(true, 'New Offer: ${o.title.replace(/'/g, "\\'") } - ${o.description.replace(/'/g, "\\'")}')" class="mt-2 bg-green-600 text-xs py-1 px-3 rounded">Notify Community</button>
                                     </div>`).join('')}
                             </div>
                         </div>
                         <div class="bg-gray-800/80 p-6 rounded-lg">
-                            <h2 class="text-xl font-semibold mb-4">Create New Offer</h2>
-                            <form id="add-offer-form" class="space-y-4">
-                                <input type="text" id="new-offer-title" placeholder="Offer Title" required class="w-full p-2 bg-gray-700 rounded text-white">
-                                <textarea id="new-offer-desc" placeholder="Description" required class="w-full p-2 bg-gray-700 rounded h-24 text-white"></textarea>
-                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Create & Save Offer</button>
+                            <h2 class="text-xl font-semibold mb-4">Add New Prediction</h2>
+                            <form id="add-prediction-form" class="space-y-4">
+                                <input type="date" id="new-prediction-date" required class="w-full p-2 bg-gray-700 rounded text-white" style="color-scheme: dark;">
+                                <input type="text" id="new-prediction-title" placeholder="Event Title (e.g., Mars enters Leo)" required class="w-full p-2 bg-gray-700 rounded text-white">
+                                <textarea id="new-prediction-desc" placeholder="Description" required class="w-full p-2 bg-gray-700 rounded h-24 text-white"></textarea>
+                                <input type="text" id="new-prediction-planet" placeholder="Planet Involved (optional)" class="w-full p-2 bg-gray-700 rounded text-white">
+                                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Add Prediction</button>
                             </form>
                         </div>
                     </div>`;
             },
-            
-            async render_content() {
-                const contents = await this.loadDB('app_content');
-                return `
-                    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Site Content Editor</h1>
-                    <div class="bg-gray-800/80 p-6 rounded-lg">
-                        <form id="content-form">
-                             <div class="space-y-6">
-                                ${contents.map(c => `
-                                    <div>
-                                        <label for="content_${c.content_key}" class="block text-sm font-medium text-yellow-300 capitalize">${c.content_key.replace(/_/g, ' ')}</label>
-                                        <textarea id="content_${c.content_key}" name="${c.content_key}" rows="4" class="mt-1 block w-full bg-gray-700 rounded-md border-gray-600 shadow-sm text-white p-2">${c.content_value}</textarea>
-                                    </div>
-                                `).join('')}
-                            </div>
-                            <div class="mt-6">
-                                <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg">Save All Content</button>
-                            </div>
-                        </form>
-                    </div>
-                `;
-            },
-            
-            async render_appearance() {
-                const { data, error } = await supabaseClient.from('site_appearance').select('*').eq('id', 1).single();
-                if (error) { return `<p>Error loading appearance settings.</p>`; }
-                const settings = data;
-                const images = settings.background_slideshow_images.join('\n');
 
-                return `
-                    <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Appearance Settings</h1>
-                    <div class="bg-gray-800/80 p-6 rounded-lg">
-                        <form id="appearance-form" class="space-y-6">
-                             <div>
-                                <label for="theme_color" class="block text-sm font-medium text-yellow-300">Theme Color</label>
-                                <input type="color" id="theme_color" name="theme_color" value="${settings.theme_color}" class="mt-1 block w-full h-10 bg-gray-700 rounded-md border-gray-600">
-                            </div>
-                             <div>
-                                <label for="font_family" class="block text-sm font-medium text-yellow-300">Font Family</label>
-                                <select id="font_family" name="font_family" class="mt-1 block w-full bg-gray-700 rounded-md border-gray-600 p-2 text-white">
-                                    <option value="Inter" ${settings.font_family === 'Inter' ? 'selected' : ''}>Inter</option>
-                                    <option value="Roboto" ${settings.font_family === 'Roboto' ? 'selected' : ''}>Roboto</option>
-                                    <option value="Lato" ${settings.font_family === 'Lato' ? 'selected' : ''}>Lato</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="background_slideshow_images" class="block text-sm font-medium text-yellow-300">Background Slideshow Images</label>
-                                <p class="text-xs text-gray-400 mb-2">Enter one image URL per line. Use high-quality links from sites like Unsplash.</p>
-                                <textarea id="background_slideshow_images" name="background_slideshow_images" rows="5" class="mt-1 block w-full bg-gray-700 rounded-md border-gray-600 shadow-sm text-white p-2">${images}</textarea>
-                            </div>
-                            <div class="mt-6">
-                                <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg">Save Appearance Settings</button>
-                            </div>
-                        </form>
-                    </div>
-                `;
-            },
-            
-            async updateSiteContent() {
-                const form = document.getElementById('content-form');
-                const formData = new FormData(form);
-                const updates = [];
-                for (let [key, value] of formData.entries()) {
-                    updates.push({ content_key: key, content_value: value });
-                }
-                
-                const { error } = await supabaseClient.from('app_content').upsert(updates);
-                if (error) {
-                    alert('Error saving content: ' + error.message);
-                } else {
-                    alert('Site content updated successfully!');
-                }
-            },
-
-             async updateAppearance() {
-                const form = document.getElementById('appearance-form');
-                const images = form.querySelector('[name="background_slideshow_images"]').value.split('\n').map(url => url.trim()).filter(Boolean);
-                
-                const updatedSettings = {
-                    id: 1, // We are always updating the single row
-                    theme_color: form.querySelector('[name="theme_color"]').value,
-                    font_family: form.querySelector('[name="font_family"]').value,
-                    background_slideshow_images: images
+            async render_community() { /* ... unchanged ... */ },
+            async render_offers() { /* ... unchanged ... */ },
+            async render_content() { /* ... unchanged ... */ },
+            async render_appearance() { /* ... unchanged ... */ },
+            async updateSiteContent() { /* ... unchanged ... */ },
+            async updateAppearance() { /* ... unchanged ... */ },
+            async viewUser(userId) { /* ... unchanged ... */ },
+            async saveUserDetails(userId) { /* ... unchanged ... */ },
+            async updateUserStatus(userId, status) { /* ... unchanged ... */ },
+            async replyAsAstrologer(userId, message) { /* ... unchanged ... */ },
+            async addCommunityMember() { /* ... unchanged ... */ },
+            async addExistingUserToCommunity(name, phone) { /* ... unchanged ... */ },
+            async deleteCommunityMember(id) { /* ... unchanged ... */ },
+            async addOffer() { /* ... unchanged ... */ },
+            async deleteOffer(id) { /* ... unchanged ... */ },
+            async addPrediction() {
+                const newPrediction = {
+                    event_date: document.getElementById('new-prediction-date').value,
+                    event_title: document.getElementById('new-prediction-title').value,
+                    description: document.getElementById('new-prediction-desc').value,
+                    planet_involved: document.getElementById('new-prediction-planet').value,
                 };
-                
-                const { error } = await supabaseClient.from('site_appearance').update(updatedSettings).eq('id', 1);
-
-                if (error) {
-                    alert('Error saving appearance settings: ' + error.message);
-                } else {
-                    alert('Appearance updated successfully! The main app will reflect changes on its next refresh.');
+                if (!newPrediction.event_date || !newPrediction.event_title || !newPrediction.description) {
+                    alert('Please fill all required fields.');
+                    return;
                 }
+                const { error } = await supabaseClient.from('predictions').insert(newPrediction);
+                if (error) { alert(`Error adding prediction: ${error.message}`); }
+                else { alert('Prediction added successfully!'); await this.render('predictions'); }
             },
-
-
-            async viewUser(userId) {
-                const users = await this.loadDB('users');
-                const user = users.find(u => u.user_id === userId);
-                if (!user) return;
-                const chatHistory = user.chat_history || [];
-
-                this.elements.modal.content.innerHTML = `
-                    <header class="p-4 md:p-6 border-b border-gray-700 flex justify-between items-center flex-shrink-0">
-                        <h2 class="text-lg md:text-2xl font-bold">Manage User</h2>
-                        <button onclick="adminApp.hideModal()" class="text-gray-400 hover:text-white text-3xl">&times;</button>
-                    </header>
-                    <div id="user-edit-form" class="flex-grow p-4 md:p-6 overflow-y-auto no-scrollbar">
-                        <button onclick="adminApp.addExistingUserToCommunity('${user.name}', '${user.phone}')" class="w-full mb-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Add to Community</button>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6">
-                            <div><label class="block text-xs text-gray-400 mb-1">Name</label><input type="text" name="name" value="${user.name || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div>
-                            <div><label class="block text-xs text-gray-400 mb-1">Phone</label><input type="text" name="phone" value="${user.phone || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div>
-                            <div><label class="block text-xs text-gray-400 mb-1">DOB</label><input type="date" name="dob" value="${user.dob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white" style="color-scheme: dark;"></div>
-                            <div><label class="block text-xs text-gray-400 mb-1">TOB</label><input type="time" name="tob" value="${user.tob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white" style="color-scheme: dark;"></div>
-                            <div class="md:col-span-2"><label class="block text-xs text-gray-400 mb-1">POB</label><input type="text" name="pob" value="${user.pob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div>
-                        </div>
-                        <h3 class="text-lg font-semibold mb-2 border-t border-gray-700 pt-4">Conversation</h3>
-                        <div class="h-48 overflow-y-auto no-scrollbar bg-gray-900/50 p-4 rounded-lg space-y-3">
-                             ${chatHistory.map(msg => `<div class="flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}"><div class="max-w-md p-2 rounded-lg text-xs ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-600'}">${msg.text}</div></div>`).join('') || '<p class="text-gray-500">No chat history yet.</p>'}
-                        </div>
-                    </div>
-                    <footer class="p-4 md:p-6 border-t border-gray-700 flex-shrink-0 bg-gray-800">
-                        <form id="direct-message-form" class="space-y-4">
-                            <textarea id="direct-message-text" rows="2" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-200" placeholder="Reply as Astrologer..."></textarea>
-                            <div class="flex flex-col sm:flex-row gap-2">
-                                <button type="submit" class="w-full sm:w-auto flex-grow bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 rounded-lg">Send Reply</button>
-                                <button type="button" onclick="adminApp.saveUserDetails('${user.user_id}')" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-2 px-3 rounded-lg">Save Changes</button>
-                                <button type="button" onclick="adminApp.updateUserStatus('${user.user_id}', 'Resolved')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg">Mark Resolved</button>
-                            </div>
-                        </form>
-                    </footer>
-                `;
-                this.elements.modal.container.classList.remove('hidden');
-
-                document.getElementById('direct-message-form').addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const message = document.getElementById('direct-message-text').value;
-                    if (message.trim()) {
-                        await this.replyAsAstrologer(user.user_id, message);
-                        document.getElementById('direct-message-text').value = '';
-                    }
-                });
+            async deletePrediction(id) {
+                if (!confirm('Are you sure you want to delete this prediction?')) return;
+                const { error } = await supabaseClient.from('predictions').delete().eq('id', id);
+                if (error) { alert('Error deleting prediction.'); }
+                else { await this.render('predictions'); }
             },
-            
-            async saveUserDetails(userId) {
-                const form = document.getElementById('user-edit-form');
-                if (!form) return;
-
-                const updatedData = {
-                    name: form.querySelector('[name="name"]').value,
-                    phone: form.querySelector('[name="phone"]').value,
-                    dob: form.querySelector('[name="dob"]').value,
-                    tob: form.querySelector('[name="tob"]').value,
-                    pob: form.querySelector('[name="pob"]').value,
-                };
-                
-                const { error } = await supabaseClient.from('users').update(updatedData).eq('user_id', userId);
-                
-                if (error) {
-                    console.error('Error updating user:', error);
-                    alert('Failed to save details.');
-                } else {
-                    alert('User details saved successfully!');
-                    this.hideModal();
-                    await this.render('dashboard');
-                }
-            },
-            
-            async updateUserStatus(userId, status) {
-                const { error } = await supabaseClient.from('users').update({ status: status }).eq('user_id', userId);
-                if (error) { alert('Failed to update status.'); console.error(error); } 
-                else { alert(`User marked as ${status}.`); this.hideModal(); await this.render('dashboard'); }
-            },
-
-            async replyAsAstrologer(userId, message) {
-                const { data: user, error: fetchError } = await supabaseClient.from('users').select('chat_history').eq('user_id', userId).single();
-                if (fetchError || !user) { alert('Could not find user to reply to.'); return; }
-
-                const newChatMessage = { sender: 'astrologer', text: message, timestamp: Date.now() };
-                const updatedChatHistory = [...(user.chat_history || []), newChatMessage];
-
-                const { error } = await supabaseClient.from('users').update({ chat_history: updatedChatHistory }).eq('user_id', userId);
-                if (error) { alert('Failed to send reply.'); console.error('Error sending reply:', error); } 
-                else { alert(`Reply sent!`); this.viewUser(userId); }
-            },
-
-            async addCommunityMember() {
-                const name = document.getElementById('new-member-name').value;
-                const phone = document.getElementById('new-member-phone').value;
-                if(!name || !phone) return;
-                await this.addExistingUserToCommunity(name, phone);
-                await this.render('community');
-            },
-            
-            async addExistingUserToCommunity(name, phone) {
-                 if(!name || !phone) { alert('User has no name or phone.'); return; }
-                const { error } = await supabaseClient.from('community_members').insert({ name, phone });
-                if (error && error.code === '23505') { // Unique constraint violation
-                    alert(`${name} is already in the community.`);
-                } else if (error) {
-                    alert(`Error adding member: ${error.message}`);
-                } else {
-                    alert(`${name} added to community successfully!`);
-                }
-            },
-            
-            async deleteCommunityMember(id) {
-                if(!confirm('Are you sure you want to remove this member?')) return;
-                const { error } = await supabaseClient.from('community_members').delete().eq('id', id);
-                if (error) { alert('Error removing member.'); }
-                else { await this.render('community'); }
-            },
-
-            async addOffer() {
-                const title = document.getElementById('new-offer-title').value;
-                const description = document.getElementById('new-offer-desc').value;
-                if(!title || !description) return;
-
-                const { error } = await supabaseClient.from('offers').insert({ title, description });
-                if (error) { alert(`Error adding offer: ${error.message}`); } 
-                else { alert('Offer created successfully!'); await this.render('offers'); }
-            },
-            
-            async deleteOffer(id) {
-                if(!confirm('Are you sure you want to delete this offer?')) return;
-                const { error } = await supabaseClient.from('offers').delete().eq('id', id);
-                if (error) { alert('Error deleting offer.'); }
-                else { await this.render('offers'); }
-            },
-
-            hideModal() { this.elements.modal.container.classList.add('hidden'); this.elements.modal.content.innerHTML = ''; },
-            
-            async createCommunity(isCommunity = false, customMessage = "Hello from the Planets Predictor community!") {
-                const members = isCommunity ? await this.loadDB('community_members') : await this.loadDB('users');
-                if (members.length === 0) { alert('No users to create a community with.'); return; }
-                const firstPhone = members[0].phone;
-                window.open(`https://wa.me/${firstPhone}?text=${encodeURIComponent(customMessage)}`, '_blank');
-                alert('WhatsApp is opening to notify the community. You may need to manually forward the message to other members.');
-            },
-
+            hideModal() { this.elements.modal.container.classList.add('hidden'); },
+            async createCommunity(isCommunity = false, customMessage = "Hello from the Planets Predictor community!") { /* ... unchanged ... */ },
         };
         
+        // --- Simplified & Unchanged Functions for Brevity ---
+        adminApp.render_community = async function() { const members = await this.loadDB('community_members'); return ` <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Community Management</h1> <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"> <div class="lg:col-span-2 bg-gray-800/80 p-6 rounded-lg"> <div class="flex justify-between items-center mb-4"> <h2 class="text-xl font-semibold">Community Members (${members.length})</h2> <button onclick="adminApp.createCommunity(true)" class="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded-lg whitespace-nowrap">Notify Community</button> </div> <div class="overflow-x-auto"> <table class="w-full text-left"> <thead><tr><th class="p-3">Name</th><th class="p-3">Phone</th><th class="p-3">Actions</th></tr></thead> <tbody> ${members.map(m => `<tr><td class="p-2">${m.name}</td><td class="p-2">${m.phone}</td><td><button class="text-red-400 text-xs" onclick="adminApp.deleteCommunityMember(${m.id})">Remove</button></td></tr>`).join('')} </tbody> </table> </div> </div> <div class="bg-gray-800/80 p-6 rounded-lg"> <h2 class="text-xl font-semibold mb-4">Add New Member</h2> <form id="add-member-form" class="space-y-4"> <input type="text" id="new-member-name" placeholder="Name" required class="w-full p-2 bg-gray-700 rounded text-white"> <input type="tel" id="new-member-phone" placeholder="Phone Number" required class="w-full p-2 bg-gray-700 rounded text-white"> <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Add to Community</button> </form> </div> </div>`; };
+        adminApp.render_offers = async function() { const offers = await this.loadDB('offers'); return ` <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Offers & Promotions</h1> <div class="grid grid-cols-1 lg:grid-cols-3 gap-6"> <div class="lg:col-span-2 bg-gray-800/80 p-6 rounded-lg"> <h2 class="text-xl font-semibold mb-4">Current Offers (${offers.length})</h2> <div class="space-y-4"> ${offers.map(o => `<div class="bg-gray-700/50 p-4 rounded-lg"><div class="flex justify-between items-start"><div><h3 class="font-bold text-yellow-300">${o.title}</h3><p class="text-sm text-gray-300">${o.description}</p></div><div><button onclick="adminApp.deleteOffer(${o.id})" class="text-red-400 text-xs">Delete</button></div></div><button onclick="adminApp.createCommunity(true, 'New Offer: ${o.title.replace(/'/g, "\\'") } - ${o.description.replace(/'/g, "\\'")}')" class="mt-2 bg-green-600 text-xs py-1 px-3 rounded">Notify Community</button></div>`).join('')} </div> </div> <div class="bg-gray-800/80 p-6 rounded-lg"> <h2 class="text-xl font-semibold mb-4">Create New Offer</h2> <form id="add-offer-form" class="space-y-4"> <input type="text" id="new-offer-title" placeholder="Offer Title" required class="w-full p-2 bg-gray-700 rounded text-white"> <textarea id="new-offer-desc" placeholder="Description" required class="w-full p-2 bg-gray-700 rounded h-24 text-white"></textarea> <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Create & Save Offer</button> </form> </div> </div>`; };
+        adminApp.render_content = async function() { const contents = await this.loadDB('app_content'); return ` <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Site Content Editor</h1> <div class="bg-gray-800/80 p-6 rounded-lg"> <form id="content-form"> <div class="space-y-6"> ${contents.map(c => `<div><label for="content_${c.content_key}" class="block text-sm font-medium text-yellow-300 capitalize">${c.content_key.replace(/_/g, ' ')}</label><textarea id="content_${c.content_key}" name="${c.content_key}" rows="4" class="mt-1 block w-full bg-gray-700 rounded-md border-gray-600 shadow-sm text-white p-2">${c.content_value}</textarea></div>`).join('')} </div> <div class="mt-6"> <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg">Save All Content</button> </div> </form> </div>`; };
+        adminApp.render_appearance = async function() { const { data, error } = await supabaseClient.from('site_appearance').select('*').eq('id', 1).single(); if (error) { return `<p>Error loading appearance settings.</p>`; } const settings = data; const images = settings.background_slideshow_images.join('\n'); return ` <h1 class="text-2xl md:text-3xl font-bold mb-6 text-gray-100">Appearance Settings</h1> <div class="bg-gray-800/80 p-6 rounded-lg"> <form id="appearance-form" class="space-y-6"> <div> <label for="theme_color" class="block text-sm font-medium text-yellow-300">Theme Color</label> <input type="color" id="theme_color" name="theme_color" value="${settings.theme_color}" class="mt-1 block w-full h-10 bg-gray-700 rounded-md border-gray-600"> </div> <div> <label for="font_family" class="block text-sm font-medium text-yellow-300">Font Family</label> <select id="font_family" name="font_family" class="mt-1 block w-full bg-gray-700 rounded-md border-gray-600 p-2 text-white"> <option value="Inter" ${settings.font_family === 'Inter' ? 'selected' : ''}>Inter</option> <option value="Roboto" ${settings.font_family === 'Roboto' ? 'selected' : ''}>Roboto</option> <option value="Lato" ${settings.font_family === 'Lato' ? 'selected' : ''}>Lato</option> </select> </div> <div> <label for="background_slideshow_images" class="block text-sm font-medium text-yellow-300">Background Slideshow Images</label> <p class="text-xs text-gray-400 mb-2">Enter one image URL per line. Use high-quality links from sites like Unsplash.</p> <textarea id="background_slideshow_images" name="background_slideshow_images" rows="5" class="mt-1 block w-full bg-gray-700 rounded-md border-gray-600 shadow-sm text-white p-2">${images}</textarea> </div> <div class="mt-6"> <button type="submit" class="w-full bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-4 rounded-lg">Save Appearance Settings</button> </div> </form> </div>`; };
+        adminApp.updateSiteContent = async function() { const form = document.getElementById('content-form'); const formData = new FormData(form); const updates = []; for (let [key, value] of formData.entries()) { updates.push({ content_key: key, content_value: value }); } const { error } = await supabaseClient.from('app_content').upsert(updates); if (error) { alert('Error saving content: ' + error.message); } else { alert('Site content updated successfully!'); } };
+        adminApp.updateAppearance = async function() { const form = document.getElementById('appearance-form'); const images = form.querySelector('[name="background_slideshow_images"]').value.split('\n').map(url => url.trim()).filter(Boolean); const updatedSettings = { id: 1, theme_color: form.querySelector('[name="theme_color"]').value, font_family: form.querySelector('[name="font_family"]').value, background_slideshow_images: images }; const { error } = await supabaseClient.from('site_appearance').update(updatedSettings).eq('id', 1); if (error) { alert('Error saving appearance settings: ' + error.message); } else { alert('Appearance updated successfully! The main app will reflect changes on its next refresh.'); } };
+        adminApp.viewUser = async function(userId) { const users = await this.loadDB('users'); const user = users.find(u => u.user_id === userId); if (!user) return; const chatHistory = user.chat_history || []; this.elements.modal.content.innerHTML = `<header class="p-4 md:p-6 border-b border-gray-700 flex justify-between items-center flex-shrink-0"><h2 class="text-lg md:text-2xl font-bold">Manage User</h2><button onclick="adminApp.hideModal()" class="text-gray-400 hover:text-white text-3xl">&times;</button></header><div id="user-edit-form" class="flex-grow p-4 md:p-6 overflow-y-auto no-scrollbar"><button onclick="adminApp.addExistingUserToCommunity('${user.name}', '${user.phone}')" class="w-full mb-4 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-4 rounded-lg">Add to Community</button><div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-6"><div><label class="block text-xs text-gray-400 mb-1">Name</label><input type="text" name="name" value="${user.name || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div><div><label class="block text-xs text-gray-400 mb-1">Phone</label><input type="text" name="phone" value="${user.phone || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div><div><label class="block text-xs text-gray-400 mb-1">DOB</label><input type="date" name="dob" value="${user.dob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white" style="color-scheme: dark;"></div><div><label class="block text-xs text-gray-400 mb-1">TOB</label><input type="time" name="tob" value="${user.tob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white" style="color-scheme: dark;"></div><div class="md:col-span-2"><label class="block text-xs text-gray-400 mb-1">POB</label><input type="text" name="pob" value="${user.pob || ''}" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white"></div></div><h3 class="text-lg font-semibold mb-2 border-t border-gray-700 pt-4">Conversation</h3><div class="h-48 overflow-y-auto no-scrollbar bg-gray-900/50 p-4 rounded-lg space-y-3">${chatHistory.map(msg => `<div class="flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}"><div class="max-w-md p-2 rounded-lg text-xs ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-gray-600'}">${msg.text}</div></div>`).join('') || '<p class="text-gray-500">No chat history yet.</p>'}</div></div><footer class="p-4 md:p-6 border-t border-gray-700 flex-shrink-0 bg-gray-800"><form id="direct-message-form" class="space-y-4"><textarea id="direct-message-text" rows="2" class="w-full p-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-200" placeholder="Reply as Astrologer..."></textarea><div class="flex flex-col sm:flex-row gap-2"><button type="submit" class="w-full sm:w-auto flex-grow bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-3 rounded-lg">Send Reply</button><button type="button" onclick="adminApp.saveUserDetails('${user.user_id}')" class="w-full sm:w-auto bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-2 px-3 rounded-lg">Save Changes</button><button type="button" onclick="adminApp.updateUserStatus('${user.user_id}', 'Resolved')" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold py-2 px-3 rounded-lg">Mark Resolved</button></div></form></footer>`; this.elements.modal.container.classList.remove('hidden'); document.getElementById('direct-message-form').addEventListener('submit', async (e) => { e.preventDefault(); const message = document.getElementById('direct-message-text').value; if (message.trim()) { await this.replyAsAstrologer(user.user_id, message); document.getElementById('direct-message-text').value = ''; } }); };
+        adminApp.saveUserDetails = async function(userId) { const form = document.getElementById('user-edit-form'); if (!form) return; const updatedData = { name: form.querySelector('[name="name"]').value, phone: form.querySelector('[name="phone"]').value, dob: form.querySelector('[name="dob"]').value, tob: form.querySelector('[name="tob"]').value, pob: form.querySelector('[name="pob"]').value, }; const { error } = await supabaseClient.from('users').update(updatedData).eq('user_id', userId); if (error) { console.error('Error updating user:', error); alert('Failed to save details.'); } else { alert('User details saved successfully!'); this.hideModal(); await this.render('dashboard'); } };
+        adminApp.updateUserStatus = async function(userId, status) { const { error } = await supabaseClient.from('users').update({ status: status }).eq('user_id', userId); if (error) { alert('Failed to update status.'); console.error(error); } else { alert(`User marked as ${status}.`); this.hideModal(); await this.render('dashboard'); } };
+        adminApp.replyAsAstrologer = async function(userId, message) { const { data: user, error: fetchError } = await supabaseClient.from('users').select('chat_history').eq('user_id', userId).single(); if (fetchError || !user) { alert('Could not find user to reply to.'); return; } const newChatMessage = { sender: 'astrologer', text: message, timestamp: Date.now() }; const updatedChatHistory = [...(user.chat_history || []), newChatMessage]; const { error } = await supabaseClient.from('users').update({ chat_history: updatedChatHistory }).eq('user_id', userId); if (error) { alert('Failed to send reply.'); console.error('Error sending reply:', error); } else { alert(`Reply sent!`); this.viewUser(userId); } };
+        adminApp.addCommunityMember = async function() { const name = document.getElementById('new-member-name').value; const phone = document.getElementById('new-member-phone').value; if(!name || !phone) return; await this.addExistingUserToCommunity(name, phone); await this.render('community'); };
+        adminApp.addExistingUserToCommunity = async function(name, phone) { if(!name || !phone) { alert('User has no name or phone.'); return; } const { error } = await supabaseClient.from('community_members').insert({ name, phone }); if (error && error.code === '23505') { alert(`${name} is already in the community.`); } else if (error) { alert(`Error adding member: ${error.message}`); } else { alert(`${name} added to community successfully!`); } };
+        adminApp.deleteCommunityMember = async function(id) { if(!confirm('Are you sure you want to remove this member?')) return; const { error } = await supabaseClient.from('community_members').delete().eq('id', id); if (error) { alert('Error removing member.'); } else { await this.render('community'); } };
+        adminApp.addOffer = async function() { const title = document.getElementById('new-offer-title').value; const description = document.getElementById('new-offer-desc').value; if(!title || !description) return; const { error } = await supabaseClient.from('offers').insert({ title, description }); if (error) { alert(`Error adding offer: ${error.message}`); } else { alert('Offer created successfully!'); await this.render('offers'); } };
+        adminApp.deleteOffer = async function(id) { if(!confirm('Are you sure you want to delete this offer?')) return; const { error } = await supabaseClient.from('offers').delete().eq('id', id); if (error) { alert('Error deleting offer.'); } else { await this.render('offers'); } };
+        adminApp.hideModal = function() { this.elements.modal.container.classList.add('hidden'); };
+        adminApp.createCommunity = async function(isCommunity = false, customMessage = "Hello from the Planets Predictor community!") { const members = isCommunity ? await this.loadDB('community_members') : await this.loadDB('users'); if (members.length === 0) { alert('No users to create a community with.'); return; } const firstPhone = members[0].phone; window.open(`https://wa.me/${firstPhone}?text=${encodeURIComponent(customMessage)}`, '_blank'); alert('WhatsApp is opening to notify the community. You may need to manually forward the message to other members.'); };
+
         window.addEventListener('DOMContentLoaded', () => adminApp.init());
         setInterval(() => { if (document.getElementById('dashboard-link')?.classList.contains('bg-gray-700')) { const searchVal = document.getElementById('search-input')?.value || ''; adminApp.render('dashboard', searchVal); } }, 10000);
     </script>
